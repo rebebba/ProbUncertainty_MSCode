@@ -1,0 +1,879 @@
+---
+title: "Classical tests, linear models, and their extensions for the analysis of 2x2
+  contingency tables - Figures"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+date: "2023-08-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+# data: type 2, nsim = 1000, pt = 0.5
+load(file = "saveFile_type2_nsim1000_pt0.5.RData")
+
+f <- commandArgs(trailingOnly = TRUE)[1]
+#load(paste("./", f, sep = ""))
+type <- simParams$type
+propTreatment <- simParams$propTreatment
+nSim <- simParams$nSim
+nVals <- simParams$nVals
+p0Vals <- simParams$p0Vals
+deltapVals <- simParams$deltapVals
+
+# color schemes used across various plots
+c1 <- colorRampPalette(c("red", "yellow"))
+c2 <- colorRampPalette(c("springgreen", "blue"))
+cols <- c(c1(10), "black", c2(10))
+
+```
+
+```{r, echo=FALSE}
+par(
+  mfrow = c(2, 2),
+  las = 1,
+  mar = c(3, 3, 1, 1),
+  oma = c(3, 3, 1, 1)
+)
+
+s <- subset(d, d$p0 == 0.1)
+plot(-1, -1, xlim = c(min(nVals), max(nVals)), ylim = c(-0.5, 0.5))
+t <- tapply(s$lmEst, list(deltap = s$deltap, n = s$n), mean)
+for (i in 1:(dim(t)[1])) {
+  lines(c(min(nVals), max(nVals)),
+        rep(as.numeric(rownames(t)[i]), 2),
+        col = "gray",
+        lwd = 2)
+  lines(nVals, t[i, ], col = "black", lty = "dashed")
+}
+legend(20, -0.2,
+  bty = 'n',
+  cex = 0.9,
+  col = c("gray", "black"),
+  lwd = c(2, 1),
+  lty = c("solid", "dashed"),
+  c("true value", "mean of estimates")
+)
+mtext(side = 3,
+      outer = FALSE,
+      adj = 0,
+      expression(paste(" (a) LM analysis, ", p[0], " = 0.1", sep = "")))
+
+
+plot(-1, -1, xlim = c(min(nVals), max(nVals)), ylim = c(-0.5, 0.5))
+t <- tapply(s$glmEstData, list(deltap = s$deltap, n = s$n), mean)
+for (i in 1:(dim(t)[1])) {
+  lines(c(min(nVals), max(nVals)),
+        rep(as.numeric(rownames(t)[i]), 2),
+        col = "gray",
+        lwd = 2)
+  lines(nVals, t[i, ], col = "black", lty = "dashed")
+}
+mtext(side = 3,
+      outer = FALSE,
+      adj = 0,
+      expression(paste(" (b) GLM analysis, ", p[0], " = 0.1", sep = "")))
+s <- subset(d, d$p0 == 0.5)
+plot(-1, -1, xlim = c(min(nVals), max(nVals)), ylim = c(-0.5, 0.5))
+t <- tapply(s$lmEst, list(deltap = s$deltap, n = s$n), mean)
+for (i in 1:(dim(t)[1])) {
+  lines(c(min(nVals), max(nVals)),
+        rep(as.numeric(rownames(t)[i]), 2),
+        col = "gray",
+        lwd = 2)
+  lines(nVals, t[i, ], col = "black", lty = "dashed")
+}
+mtext(side = 3,
+      outer = FALSE,
+      adj = 0,
+      expression(paste(" (c) LM analysis, ", p[0], " = 0.5", sep = "")))
+
+
+plot(-1, -1, xlim = c(min(nVals), max(nVals)), ylim = c(-0.5, 0.5))
+t <- tapply(s$glmEstData, list(deltap = s$deltap, n = s$n), mean)
+for (i in 1:(dim(t)[1])) {
+  lines(c(min(nVals), max(nVals)),
+        rep(as.numeric(rownames(t)[i]), 2),
+        col = "gray",
+        lwd = 2)
+  lines(nVals, t[i, ], col = "black", lty = "dashed")
+}
+mtext(side = 3,
+      outer = FALSE,
+      adj = 0,
+      expression(paste(" (d) GLM analysis, ", p[0], " = 0.5", sep = "")))
+
+
+mtext(
+  side = 1,
+  outer = TRUE,
+  line = 0.5,
+  expression(paste("total sample size (n"["t"]*")", sep = ""))
+)
+
+mtext(
+  side = 2,
+  outer = TRUE,
+  line = 0.5,
+  las = 0,
+  "average value of estimated difference"
+)
+
+```
+Figure 1. Unbiasedness of LM- and GLM-based inferences of the difference in proportions between two groups ($\delta$). In each simulation, one group has a true probability of p~0~ such that in (a) and (b), p~0~ = 0.1, while in (c) and (d), p~0~ = 0.5. The other group has a probability of p~1~ = p~0~ + $\delta$, where $\delta$ takes values such that p~1~ lies between 0 and 1. Simulated differences (black dotted lines) and true differences (grey solid lines) match closely for all simulation scenarios and all values of $\delta$. Each parameter combination was simulated 1000 times and results given are means across replicate simulations. Simulations had fixed and equal proportions of the data between the two groups.
+
+
+```{r, echo=FALSE}
+makeSEValidityPlot <- function(t) {
+  plot(
+    -1,
+    -1,
+    xlim = c(min(nVals), max(nVals)),
+    ylim = c(0.5, 1.5),
+    xlab = "",
+    ylab = "",
+    yaxp = c(0.5, 1.5, 2)
+  )
+  for (i in 1:(dim(t)[1])) {
+    lines(nVals, t[i, ], col = cols[which(round(deltapVals, 1) == as.numeric(rownames(t)[i]))])
+  }
+  abline(1, 0, col = "gray", lty = "dashed", lwd = 1.5)
+}
+
+
+makeLegend <- function(x, y, t) {
+  leg <- array(dim = length(rownames(t)))
+  for (i in 1:length(rownames(t)))
+    leg[i] <- as.expression(bquote(delta == .(rownames(t)[i])))
+
+  legend(
+    x,
+    y,
+    xpd = NA,
+    cex = 0.9,
+    bty = 'n',
+    col = cols[which(round(deltapVals, 1) %in% as.numeric(rownames(t)))],
+    lty = "solid",
+    legend = leg
+  )
+}
+
+
+par(
+  mfrow = c(2, 2),
+  mar = c(2, 2, 1.5, 1),
+  oma = c(4, 5, 1, 4),
+  las = 1
+)
+
+cex.subplotlab <- 0.85
+
+# validity of lm SEs for p0 = 0.1
+s <- subset(d, d$p0 == 0.1)
+t1 <- tapply(s$lmEst, list(deltap = s$deltap, n = s$n), sd)
+t2 <- tapply(s$lmSE, list(deltap = s$deltap, n = s$n), mean)
+makeSEValidityPlot(t2 / t1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (a) LM analysis, ", p[0], " = 0.1", sep = ""))
+)
+
+# validity of glm SEs - data scale for p0 = 0.1
+s <- subset(d, d$p0 == 0.1)
+t1 <- tapply(s$glmEstData, list(deltap = s$deltap, n = s$n), sd)
+t2 <- tapply(s$glmSEData, list(deltap = s$deltap, n = s$n), mean)
+makeSEValidityPlot(t2 / t1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (b) GLM analysis, ", p[0], " = 0.1", sep = ""))
+)
+
+makeLegend(100, 1.4, t2 / t1)
+
+# validity of lm SEs for p0 = 0.5
+s <- subset(d, d$p0 == 0.5)
+t1 <- tapply(s$lmEst, list(deltap = s$deltap, n = s$n), sd)
+t2 <- tapply(s$lmSE, list(deltap = s$deltap, n = s$n), mean)
+makeSEValidityPlot(t2 / t1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (c) LM analysis, ", p[0], " = 0.5", sep = ""))
+)
+
+# validity of glm SEs - data scale for p0 = 0.5
+s <- subset(d, d$p0 == 0.5)
+t1 <- tapply(s$glmEstData, list(deltap = s$deltap, n = s$n), sd)
+t2 <- tapply(s$glmSEData, list(deltap = s$deltap, n = s$n), mean)
+makeSEValidityPlot(t2 / t1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (d) GLM analysis, ", p[0], " = 0.5", sep = ""))
+)
+
+makeLegend(100, 1.4, t2 / t1)
+
+mtext(
+  side = 2,
+  outer = TRUE,
+  line = 1,
+  expression(frac(
+    paste("mean SE of ", hat(delta)), paste("SD[", hat(delta), "]")
+  )),
+  las = 0
+)
+mtext(side = 1,
+      outer = TRUE,
+      line = 1,
+      expression(paste("total sample size (n"["t"]*")", sep = ""))
+)
+
+```
+
+Figure 2. Validity of standard errors of LM- and GLM-based inferences of the difference in proportions between groups ($\delta$) when data are evenly distributed between the two groups. The standard error for the $\delta$~GLM~ estimator was constructed using the delta method. In (a) and (b), at least one group always has a probability of p~0~ = 0.1, while in (c) and (d) at least one group always has a probability of p~0~ = 0.5. 
+
+
+```{r, echo=FALSE}
+load(file = "saveFile_type2_nsim1000_pt0.2.RData")
+# data: type 2, nsim = 1000, pt = 0.2
+
+makeSEValidityPlot <- function(t) {
+  plot(-1, -1,
+    xlim = c(min(nVals), max(nVals)),
+    ylim = c(0.5, 2.25),
+    xlab = "",
+    ylab = ""
+  )
+  for (i in 1:(dim(t)[1])) {
+    lines(nVals, t[i, ], col = cols[which(round(deltapVals, 1) == as.numeric(rownames(t)[i]))])
+  }
+  abline(1, 0, col = "gray", lty = "dashed", lwd = 1.5)
+}
+
+
+makeLegend <- function(x, y, t) {
+  leg <- array(dim = length(rownames(t)))
+  for (i in 1:length(rownames(t)))
+    leg[i] <- as.expression(bquote(delta == .(rownames(t)[i])))
+
+  legend(x, y,
+    xpd = NA,
+    cex = 0.9,
+    bty = 'n',
+    col = cols[which(round(deltapVals, 1) %in% as.numeric(rownames(t)))],
+    lty = "solid",
+    legend = leg
+  )
+}
+
+
+
+par(
+  mfrow = c(2, 2),
+  mar = c(2, 2, 1.5, 1),
+  oma = c(4, 5, 1, 4),
+  las = 1
+)
+
+cex.subplotlab <- 0.85
+
+# validity of lm SEs for p0 = 0.1
+s <- subset(d, d$p0 == 0.1)
+t1 <- tapply(s$lmEst, list(deltap = s$deltap, n = s$n), sd)
+t2 <- tapply(s$lmSE, list(deltap = s$deltap, n = s$n), mean)
+makeSEValidityPlot(t2 / t1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (a) LM analysis, ", p[0], " = 0.1", sep = ""))
+)
+
+# validity of glm SEs - data scale for p0 = 0.1
+s <- subset(d, d$p0 == 0.1)
+t1 <- tapply(s$glmEstData, list(deltap = s$deltap, n = s$n), sd)
+t2 <- tapply(s$glmSEData, list(deltap = s$deltap, n = s$n), mean)
+makeSEValidityPlot(t2 / t1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (b) GLM analysis, ", p[0], " = 0.1", sep = ""))
+)
+
+makeLegend(100, 2.25, t2 / t1)
+
+# validity of lm SEs for p0 = 0.5
+s <- subset(d, d$p0 == 0.5)
+t1 <- tapply(s$lmEst, list(deltap = s$deltap, n = s$n), sd)
+t2 <- tapply(s$lmSE, list(deltap = s$deltap, n = s$n), mean)
+makeSEValidityPlot(t2 / t1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (c) LM analysis, ", p[0], " = 0.5", sep = ""))
+)
+
+# validity of glm SEs - data scale for p0 = 0.5
+s <- subset(d, d$p0 == 0.5)
+t1 <- tapply(s$glmEstData, list(deltap = s$deltap, n = s$n), sd)
+t2 <- tapply(s$glmSEData, list(deltap = s$deltap, n = s$n), mean)
+makeSEValidityPlot(t2 / t1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (d) GLM analysis, ", p[0], " = 0.5", sep = ""))
+)
+
+makeLegend(100, 2.25, t2 / t1)
+
+mtext(
+  side = 2,
+  outer = TRUE,
+  line = 1,
+  expression(frac(
+    paste("mean SE of ", hat(delta)), paste("SD[", hat(delta), "]")
+  )),
+  las = 0
+)
+mtext(side = 1,
+      outer = TRUE,
+      line = 1,
+      expression(paste("total sample size (n"["t"]*")", sep = "")))
+
+```
+
+Figure 3. Validity of standard errors of LM- and GLM-based inferences of the difference in proportions between groups ($\delta$) when data are unevenly distributed between the two groups. The standard error for the $\delta$~GLM~ estimator was constructed using the delta method. In (a) and (b), the group with 20\% of the observations always has a probability of p~0~ = 0.1, while in (c) and (d) the group with 20% of the observations always has a probability of p~0~ = 0.5. 
+
+
+
+```{r, echo=FALSE}
+load(file = "saveFile_type2_nsim1000_pt0.5.RData")
+
+makeCoverPlot <- function(t) {
+  c1 <- colorRampPalette(c("red", "yellow"))
+  c2 <- colorRampPalette(c("springgreen", "blue"))
+  cols <- c(c1(10), "black", c2(10))
+
+
+  plot(
+    -1,
+    -1,
+    xlim = c(min(nVals), max(nVals)),
+    ylim = c(0.5, 1),
+    xlab = "",
+    ylab = ""
+  )
+  for (i in 1:(dim(t)[1])) {
+    lines(nVals, t[i, ], col = cols[which(round(deltapVals, 1) == as.numeric(rownames(t)[i]))])
+  }
+  abline(0.95, 0, col = "gray", lty = "dashed", lwd = 1.5)
+}
+
+makeLegend <- function(x, y, t) {
+  leg <- array(dim = length(rownames(t)))
+  for (i in 1:length(rownames(t)))
+    leg[i] <- as.expression(bquote(delta == .(rownames(t)[i])))
+
+  legend(
+    x,
+    y,
+    xpd = NA,
+    cex = 0.9,
+    bty = 'n',
+    col = cols[which(round(deltapVals, 1) %in% as.numeric(rownames(t)))],
+    lty = "solid",
+    legend = leg
+  )
+}
+
+# lm 95% CI coverage
+coverFunc <- function(x, xhat, se) {
+  l <- xhat - 1.96 * se
+  u <- xhat + 1.96 * se
+  (l <= x & x <= u) + 0
+}
+
+
+
+## summarise coverage data for plotting
+## p0 = 0.1
+s <- subset(d, d$p0 == 0.1)
+
+# score CI
+scoreCover <- (s$scoreCI_L <= s$deltap  & s$deltap <= s$scoreCI_U) + 0
+cover_tab_score0.1 <- tapply(scoreCover, list(deltap = s$deltap, n = s$n),
+                             function(x) {
+                               sum(x) / nSim
+                               })
+
+s$cover <- coverFunc(s$deltap, s$lmEst, s$lmSE)
+cover_tab_lm_0.1 <- tapply(s$cover, list(deltap = s$deltap, n = s$n),
+                           function(x) {
+                             sum(x) / nSim
+                             })
+
+s <- subset(s, abs(s$p0 + s$deltap) < 0.99)
+x <- log(s$p0 / (1 - s$p0))
+s$deltaLogit <- -x + log((-s$deltap - exp(x) - s$deltap * exp(x)) /
+                           (-1 + s$deltap + s$deltap * exp(x)))
+s$cover <- coverFunc(s$deltaLogit, s$glmEst, s$glmSE)
+cover_tab_glm_0.1 <- tapply(s$cover, list(deltap = s$deltap, n = s$n),
+                            function(x) {sum(x) / nSim
+                              })
+# profile CI
+profileCover <- (s$profCI_L <= s$deltap  &
+                   s$deltap <= s$profCI_U) + 0
+cover_tab_profile0.1 <- tapply(profileCover, list(deltap = s$deltap, n = s$n),
+                               function(x) {
+                                 sum(x) / nSim
+                                 })
+
+f <- function(x) {
+  sum(x[which(is.na(x) == FALSE)]) / length(x[which(is.na(x) == FALSE)])
+}
+
+## p0 = 0.5
+s <- subset(d, d$p0 == 0.5)
+# score CI
+scoreCover <- (s$scoreCI_L <= s$deltap  &  s$deltap <= s$scoreCI_U) + 0
+cover_tab_score0.5 <- tapply(scoreCover, list(deltap = s$deltap, n = s$n),
+                             function(x) {
+                               sum(x) / nSim
+                               })
+
+s$cover <- coverFunc(s$deltap, s$lmEst, s$lmSE)
+cover_tab_lm_0.5 <- tapply(s$cover, list(deltap = s$deltap, n = s$n),
+                           function(x) {
+                             sum(x) / nSim
+                             })
+
+s <- subset(s, abs(s$p0 + s$deltap) < 0.99)
+x <- log(s$p0 / (1 - s$p0))
+s$deltaLogit <- -x + log((-s$deltap - exp(x) - s$deltap * exp(x)) /
+                           (-1 + s$deltap + s$deltap * exp(x)))
+s$cover <- coverFunc(s$deltaLogit, s$glmEst, s$glmSE)
+cover_tab_glm_0.5 <- tapply(s$cover, list(deltap = s$deltap, n = s$n),
+                            function(x) {
+                              sum(x) / nSim
+                              })
+# profile CI
+profileCover <- (s$profCI_L <= s$deltap  & s$deltap <= s$profCI_U) + 0
+cover_tab_profile0.5 <- tapply(profileCover, list(deltap = s$deltap, n = s$n),
+                               function(x) {
+                                 sum(x) / nSim
+                                 })
+
+
+par(
+  mfrow = c(2, 4),
+  mar = c(2, 2, 1.5, 1),
+  oma = c(4, 5, 1, 4),
+  las = 1
+)
+cex.subplotlab <- 0.85
+
+
+makeCoverPlot(cover_tab_lm_0.1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (a) LM Wald-type, ", p[0], " = 0.1", sep = ""))
+)
+
+makeCoverPlot(cover_tab_glm_0.1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (b) GLM Wald-type, ", p[0], " = 0.1", sep = ""))
+)
+
+makeCoverPlot(cover_tab_score0.1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (c) GLM score, ", p[0], " = 0.1", sep = ""))
+)
+
+makeCoverPlot(cover_tab_profile0.1)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (d) GLM profile likelihood, ", p[0], " = 0.1", sep = ""))
+)
+
+
+
+makeLegend(100, 1.0, cover_tab_lm_0.1)
+
+
+makeCoverPlot(cover_tab_lm_0.5)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (e) LM Wald-type, ", p[0], " = 0.5", sep = ""))
+)
+makeCoverPlot(cover_tab_glm_0.5)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (f) GLM Wald-type, ", p[0], " = 0.5", sep = ""))
+)
+
+makeCoverPlot(cover_tab_score0.5)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (g) GLM score, ", p[0], " = 0.5", sep = ""))
+)
+
+makeCoverPlot(cover_tab_profile0.5)
+mtext(
+  side = 3,
+  outer = FALSE,
+  adj = 0,
+  cex = cex.subplotlab,
+  expression(paste(" (h) GLM profile likelihood, ", p[0], " = 0.5", sep = ""))
+)
+
+
+
+makeLegend(100, 1.0, cover_tab_lm_0.5)
+
+mtext(side = 1,
+      outer = TRUE,
+      line = 1,
+      expression(paste("total sample size (n"["t"]*")", sep = "")))
+mtext(
+  side = 2,
+  outer = TRUE,
+  line = 1,
+  las = 0,
+  "proportion of estimates within 95% CI"
+)
+
+```
+
+Figure 4. Coverage properties for 95% confidence intervals of differences between proportions in two groups for a range of analyses and true differences between groups. In the top row (a-d), at least one group has a probability of p~0~ = 0.1 and in the bottom row (e-h), at least one group has a probability of p~0~ = 0.5. Note that in (a), the proportion of estimates within 95\% CI for $\delta$ = -0.1 (yellow) and $\delta$ = 0.9 (blue) at n~t~ = 10 are outside the y-axis range; the respective values are 0.404 and 0.398.
+
+
+
+```{r, echo=FALSE}
+s <- subset(d, d$p0 == 0.1)
+# chi square
+chisq_p <- s$chiSqP
+chisq_p[which(is.na(chisq_p))] <- 1
+powerChisq_0.1 <-
+  tapply(chisq_p, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+# chi square w Yates
+chisqY_p <- s$chiSqYP
+chisqY_p[which(is.na(chisqY_p))] <- 1
+powerChisqY_0.1 <-
+  tapply(chisqY_p, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+
+# Fisher
+powerFisher_0.1 <-
+  tapply(s$FisherExactP, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+
+# Berger and Boos correction for unconditional exact test
+poweruncondExact_P_0.1 <-
+  tapply(s$uncondExact_P, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+
+# LM
+lm_p <- s$lmP
+lm_p[which(is.nan(lm_p))] <- 1
+powerLM_0.1 <-
+  tapply(lm_p, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+
+# GLM
+powerGLM_0.1 <-
+  tapply(s$glmP, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+powerGLMLRT_0.1 <-
+  tapply(s$glmLRTP, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+
+# power of odds ratio
+powerOddsratio_midp_0.1 <-
+  tapply(s$oddsratio_midp.exact_P, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+powerOddsratio_fisher_0.1 <-
+  tapply(s$oddsratio_fisher.exact_P, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+powerOddsratio_chi.square_0.1 <-
+  tapply(s$oddsratio_chi.square.exact_P, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+
+# p0 = 0.5
+s <- subset(d, d$p0 == 0.5)
+# chi square
+chisq_p <- s$chiSqP
+chisq_p[which(is.na(chisq_p))] <- 1
+powerChisq_0.5 <-
+  tapply(chisq_p, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+# chi square w Yates
+chisqY_p <- s$chiSqYP
+chisqY_p[which(is.na(chisqY_p))] <- 1
+powerChisqY_0.5 <-
+  tapply(chisqY_p, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+# Fisher
+powerFisher_0.5 <-
+  tapply(s$FisherExactP, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+# Berger and Boos correction for unconditional exact test
+poweruncondExact_P_0.5 <-
+  tapply(s$uncondExact_P, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+# lm
+lm_p <- s$lmP
+lm_p[which(is.nan(lm_p))] <- 1
+powerLM_0.5 <-
+  tapply(lm_p, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+# glm
+powerGLM_0.5 <-
+  tapply(s$glmP, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+powerGLMLRT_0.5 <-
+  tapply(s$glmLRTP, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+# odds ratio
+powerOddsratio_midp_0.5 <-
+  tapply(s$oddsratio_midp.exact_P, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+powerOddsratio_fisher_0.5 <-
+  tapply(s$oddsratio_fisher.exact_P, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+powerOddsratio_chi.square_0.5 <-
+  tapply(s$oddsratio_chi.square.exact_P, list(deltap = s$deltap, n = s$n), function(x) {
+    sum((x < 0.05) + 0) / nSim
+  })
+
+
+# function for plotting power curves
+doPowerCurves <- function(p0, deltap) {
+  s <- subset(d, d$p0 == p0, d$deltap == deltap)
+  if (deltap == 0) {
+    plot(1000, 1000,
+      xlim = c(10, 100),
+      ylim = c(0, 0.1),
+      log = 'x',
+      xlab = "",
+      ylab = "" )
+    text(62, 0.098, "*note y-axis scale", cex = 0.8)
+  } else{
+    plot(1000, 1000,
+      xlim = c(10, 100),
+      ylim = c(0, 1),
+      log = 'x',
+      xlab = "",
+      ylab = "" )
+  }
+  if (p0 == 0.1) {
+    lines(nVals, powerChisq_0.1[as.character(deltap), ], col = "#d73027", lwd = 2.5)
+    lines(nVals, powerChisqY_0.1[as.character(deltap), ], col = "#d73027", lwd = 1.5, lty = "dashed")
+    lines(nVals, powerFisher_0.1[as.character(deltap), ], col = "#fc8d59")
+    lines(nVals, poweruncondExact_P_0.1[as.character(deltap), ], col = "#fee090", lwd = 2.5)
+    lines(nVals, powerOddsratio_midp_0.1[as.character(deltap), ], col = "#a6a6a6", lty = "dashed")
+    lines(nVals, powerLM_0.1[as.character(deltap), ], col = "#91bfdb")
+    lines(nVals, powerGLM_0.1[as.character(deltap), ], col = "#4575b4", lty = "dashed")
+    lines(nVals, powerGLMLRT_0.1[as.character(deltap), ], col = "#4575b4")
+
+  } else{
+    lines(nVals, powerChisq_0.5[as.character(deltap), ],col = "#d73027", lwd = 2.5)
+    lines(nVals, powerChisqY_0.5[as.character(deltap), ], col = "#d73027", lwd = 1.5, lty = "dashed")
+    lines(nVals, powerFisher_0.5[as.character(deltap), ], col = "#fc8d59")
+    lines(nVals, poweruncondExact_P_0.5[as.character(deltap), ], col = "#fee090", lwd = 2.5)
+    lines(nVals, powerOddsratio_midp_0.5[as.character(deltap), ], col = "#a6a6a6", lty = "dashed")
+    lines(nVals, powerLM_0.5[as.character(deltap), ], col = "#91bfdb")
+    lines(nVals, powerGLM_0.5[as.character(deltap), ], col = "#4575b4", lty = "dashed")
+    lines(nVals, powerGLMLRT_0.5[as.character(deltap), ], col = "#4575b4")
+  }
+
+  mtext(
+    side = 3,
+    outer = FALSE,
+    cex = 0.85,
+    as.expression(bquote(delta == .(deltap)))
+  )
+  if (deltap == 0)
+    abline(0.05, 0, lty = "dashed", col = "gray")
+}
+
+# power and FPR figure
+par(mar = c(2, 2, 2, 1),
+    oma = c(4, 4, 4, 1),
+    las = 1)
+layout(matrix(c(
+  1, 1, 2, 2, 3, 3, 4, 4 ,
+  1, 1, 2, 2, 3, 3, 4, 4 ,
+  5, 5, 6, 6, 7, 7, 8, 8 ,
+  5, 5, 6, 6, 7, 7, 8, 8 ,
+  9, 9,10,10,11,11, 0, 0 ,
+  9, 9,10,10,11,11, 0, 0 ,
+  0, 0, 0, 0, 0, 0, 0, 0 ,
+  12,12,13,13,14,14,15,15,
+  12,12,13,13,14,14,15,15,
+  16,16,17,17,18,18,19,19,
+  16,16,17,17,18,18,19,19,
+  20,20,21,21,22,22,0, 0 ,
+  20,20,21,21,22,22,0, 0  ), 13, 8, byrow=TRUE))
+
+for (dp in rownames(powerChisq_0.1)) {
+  doPowerCurves(0.1, dp)
+  if (dp == rownames(powerChisq_0.1)[1])
+    mtext(
+      side = 3,
+      outer = FALSE,
+      line = 2,
+      adj = 0,
+      expression(paste("(a) ", p[0], " = 0.1", sep =
+                         ""))
+    )
+}
+
+legend(150, 1,
+       xpd = NA,
+       bty = 'n',
+       col = c("#d73027", "#d73027", "#fc8d59", "#fee090", "#a6a6a6", "#91bfdb", "#4575b4", "#4575b4"),
+       lwd = c(2, 1.5, rep(1, 5)),
+       lty = c("solid", "dashed", "solid", "solid", "solid", "solid", "dashed", "solid"),
+       c("chi-square", "chi-square, Yates' correction", "Fisher's exact", "exact unconditional", "mid-p", "LM", "GLM, z", "GLM, LRT"))
+
+for (dp in rownames(powerChisq_0.5)) {
+  doPowerCurves(0.5, dp)
+  if (dp == rownames(powerChisq_0.5)[1])
+    mtext(
+      side = 3,
+      outer = FALSE,
+      line = 2,
+      adj = 0,
+      expression(paste("(b) ", p[0], " = 0.5", sep = ""))
+    )
+}
+mtext(
+  side = 1,
+  outer = TRUE,
+  line = 1,
+  expression(paste("total sample size (n"["t"]*")", sep = ""))
+)
+mtext(
+  side = 2,
+  outer = TRUE,
+  line = 1,
+  las = 0,
+  "proportion of significant tests"
+)
+```
+
+Figure 5. Power to reject false null hypotheses and false positive rates in the case of no effect ($\delta$ = 0) of different tests. All lines depict the proportion of significant results at the $\alpha$ = 0.05 level. In (a) at least one group always has a probability of p~0~ = 0.1, and in (b) at least one group has a probability of p~0~ = 0.5. Note the different y-axis scale in plots with no effect ($\delta$ = 0), where we scale from [0:0.1] rather than [0:1] to focus on behaviour relative to the idealized false positive rate of 0.05 (grey dotted line). Note that in (b), plots with equal values of |$\delta$| should be identical, noise from finite numbers of simulations notwithstanding. 
+
+
+
+```{r, echo=FALSE}
+d2 <- d[, c("chiSqP", "lmP")]
+d2$chiSqP <- round(d2$chiSqP, 5)
+d2$lmP <- round(d2$lmP, 5)
+d3 <- d[!duplicated(d2), ]
+
+dim(d)
+dim(d3)
+
+par(
+  mfrow = c(1, 2),
+  las = 1,
+  mar = c(3, 3, 1, 1),
+  oma = c(2, 2, 1, 1))
+
+co <- rep("darkgray", dim(d3)[1])
+co[which(d3$n == 10)] <- "black"
+co[which(d3$n == 20)] <- "black"
+pc <- rep(1, dim(d3)[1])
+pc[which(d3$n == 10)] <- 19
+pc[which(d3$n == 20)] <- 1
+
+plot(d3$chiSqP, d3$lmP,
+  col = co,
+  pch = pc,
+  cex = 0.4,
+  xlab = "",
+  ylab = "")
+#lines(c(0, 1), c(0, 1))
+
+plot(d3$chiSqP, d3$lmP,
+  col = co,
+  pch = pc,
+  cex = 0.4,
+  xlim = c(0, 0.1),
+  ylim = c(0, 0.1),
+  xlab = "",
+  ylab = "")
+lines(c(0.05, 0.05), c(0, 0.1), lty = "dashed", col = "gray")
+lines(c(0, 0.1), c(0.05, 0.05), lty = "dashed", col = "gray")
+mtext(side = 1, outer = TRUE, "p-value, chi-square test")
+mtext(side = 2, outer = TRUE, "p-value, t-test from LM", las = 0)
+```
+
+Figure 6. Correspondence between p-values from LM-based inferences and the Pearson chi-square test. For the LM analysis, response variables were regressed on groups, both coded as 0/1 data, such that the model slope estimated the difference between groups. In (a), results for all 1000 replicates of each of the 132 combinations of simulation parameters are shown. The same dataset is shown in (b), but values are restricted to p $\le$ 0.1 so that the correspondence between statistical significance at the $\alpha$ = 0.05 level (grey dotted lines) can be more directly assessed. p-values from simulations with the smallest total samples sizes (n~t~ = 10) are plotted with closed black circles, sample sizes n~t~ = 20 are plotted with open black circles, and the largest sample sizes (n~t~ $\ge$ 30) are plotted with open gray circles. 
