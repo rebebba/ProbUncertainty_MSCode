@@ -1,4 +1,4 @@
-## last modified 22/07/2023
+## last modified 10/01/2024
 
 ## Run with three arguments:
 ## first:  number of simulations
@@ -11,8 +11,8 @@
 ## Rscript probCompMainScript.R 1000 3 0.2
 ## Rscript probCompMainScript.R 1000 3 0.5
 
-
-install_github("rebebba/ProbUncertainity", build_vignettes = TRUE)
+install_github("rebebba/ProbUncertainty", build_vignettes = TRUE)
+library(ProbUncertainty)
 
 args <- commandArgs(trailingOnly = TRUE)
 nSim <- as.numeric(args[1])
@@ -101,6 +101,7 @@ cat("\n")
 
 # For type 3 experimental design:
 # simulate random x [0,1] but make sure there are >=2 observations for each class of x
+# i.e. if a group has fewer than 2 observations, modify the values of x so that there are >= 2 cases in each group
 sim.x <- function(n, p) {
   x <- rbinom(n, 1, p)
   if (sum(x) == 0)
